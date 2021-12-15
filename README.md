@@ -1,27 +1,26 @@
 # ELK Stack Deployment Project
 
-The following is a complete walkthrough guide in how to deploy a simple virtual network with an ELK stack server. 
-The purpose of the project was to simulate a work environment with potentially vulnerable web applications and how 
-to use the ELK stack to aggregate and view log data from multiple servers. 
+The following is a complete walkthrough guide in how to deploy a simple virtual network with an ELK Stack server. 
+The purpose of the project was to simulate a live environment with potentially vulnerable web applications. Additionally,
+the project demonstrates how to use the ELK Stack to aggregate and view log data from multiple servers. 
 
 Key highlights from the project included in this document:
-- Diagram and description of network topology
+- Diagram and Description of Network Topology
 - Load Balancing
 - Access Policies
-- Using Ansible to automate deployment and configuration of multiple servers
+- Automated Deployment and Configuration with Ansible
 - ELK Stack Configuration
-  - Beats in Use
-  - Machines Being Monitored
-
-
+  - Monitored servers
+  - Beats utilized
+ 
 ### Diagram and Description of Network Topology
 
 ![STUDENT TODO: Update image file path](Images/ELK_Stack_Diagram.png)  
 
+
 The main purpose of this network is to simulate a network hosting vulnerable web applications in order to learn how ELK can be used to log traffic to those web applications. 
 
- The configuration details of each machine may be found below.
-
+Table 1 - Summary of server names and details
 | Name     |   Function  | IP Address |  Operating System  |
 |----------|-------------|------------|--------------------|
 | Jump Box | Provisioner | 10.0.0.4   | Linux Ubuntu 18.04 |
@@ -36,26 +35,38 @@ In addition to the above, a **load balancer** was placed in front of the web ser
 
 **Red Team Availability Set**: Web1-Web2-Web3
 
-One of the most important aspects of securing a network is ensuring it's **Availability**. The availability of network resources is a key component of the CIA triad. Load balancing and redundancy are two ways to increase the uptime of network resources. In this network, several redundant web servers were created behind a load balancer. They were grouped together logically in a backend pool. This means if one of them were taken down, there would be another instance running for the load balancer to direct traffic to. In addition to creating failover should a server be unavailable, the load balancer can spread the traffic to multiple servers should the network be flooded with traffic. This is especially useful in mitigating the risk of a distributed denial-of-service attack (DDOS).
+One of the most important aspects of securing a network is ensuring it's **Availability**. The availability of network resources is a key component of the CIA triad. Load balancing and redundancy are two ways to increase the uptime of network resources. In this network, several redundant web servers were created behind a load balancer. They were grouped together logically in a backend pool. This means if one of the web servers were taken down, another instance can immediately receive traffic from the load balancer. In addition to creating this concept of failover, the load balancer can spread the traffic to multiple servers should the network be flooded with traffic. This is especially useful in mitigating the risk of a distributed denial-of-service attack (DDOS).
 
 ## Access Policies
-The machines on the internal network are _not_ exposed to the public Internet. 
+**Confidentiality** is another key component of the CIA triad. Confidentiality refers to the cybersecurity measures surrounding access controls to data and network resources. 
+In Azure, this is accomplished with Network Security Groups. For this network most of the security controls for access to the jump box and the web servers were managed by RedTeamSecurityGroup. To harden the system a rule was created that only allowed web traffic to the jump box for system administration. The administrator's Public IP address 
+was added to the rule to ensure only traffic from this IP address could access the jump box. Additionally, all of the machines in the network were configured to allow SSH access for network administration. We added security to this potential vulnerability by only allowing SSH from machines with allowed public SSH keys. Finally, we added a rule that only
+SSH access from the jump box to the web servers was permitted. 
 
-Only the **jump box** machine can accept connections from the Internet. Access to this machine is only allowed from the IP address `64.72.118.76`
-- **Note**: _Your answer will be different!_
+The ELK server was created in it's own virtual network. As a result, a separate security group was created to manage traffic to and from the ELK server. A rule was created to 
+allow web traffic from the administrator's IP to the ELK server to view the aggregated log data in **Kibana**. Access via SSH was also permitted on the ELK server. Public SSH keys from the administrator account were added to increase security around SSH access. 
 
-Machines _within_ the network can only be accessed by **each other**. The DVWA 1 and DVWA 2 VMs send traffic to the ELK server.
-
-A summary of the access policies in place can be found in the table below.
-
-| Name     | Publicly Accessible | Allowed IP Addresses |
-|----------|---------------------|----------------------|
-| Jump Box | Yes                 | 64.72.118.76         |
-| ELK      | No                  | 10.0.0.1-254         |
-| DVWA 1   | No                  | 10.0.0.1-254         |
-| DVWA 2   | No                  | 10.0.0.1-254         |
 
 ## Automated Deployment and Configuration Using Ansible
+For this network, the Ansible container was downloaded to the jump box to serve as a provisioner for the network. **Containers** are simplified virtual machines that are dedicated to one task. Multiple containers can share the resources and operating system of a virtual machine. This way we could deploy apps and configure servers using Ansible playbooks. **Ansible playbooks** use YML (YAML Ain't Markup Language) files in order to create a series of commands to be executed on multiple servers. This automation tool reduced deployment and configuration time in this small set up of only four severs and would be extremely powerful in a network of hundreds or thousands of servers. Finally, we utilized **Docker** to create and manage our containers. 
+
+The commands to install Docker and then use Docker to create the Ansible container:
+
+1. Install Docker: `sudo apt update` then `sudo apt install docker.io`
+
+2. Check Docker status: `sudo systemctl status docker` or Start Docker status: `sudo systemctl start docker`
+
+3. Pull the Ansible container: `sudo docker pull cyberxsecurity/ansible`
+
+4. Launch the Ansible container: `docker run -ti cyberxsecurity/ansible:latest bash` 
+
+Once the Ansible container is deployed on the jump box you can SSH to the jump box and connect to the container with the following commands:
+1. List all containers: `docker container list -a` the Ansible container will be given a randomized name. 
+
+2. Start the container: ```bash $ sudo docker start container_name``` Linux will confirm the name of the container started.
+
+3. Connect to the container using attach: ```bash $ sudo docker attach container_name``` Linux will show you have connected by giving root access prompt. 
+
 
 The web application we used in this scenario is caled 'DVWA' or "Damn Vulnerable Web Application. This testing tool features several common exploits in order to teach security professionals how web applications can be exploited. 
 
@@ -64,7 +75,7 @@ The web application we used in this scenario is caled 'DVWA' or "Damn Vulnerable
 
 Integrating an ELK server allows users to easily monitor the vulnerable VMs for changes to the **file systems of the VMs on the network**, as well as watch **system metrics**, such as CPU usage; attempted SSH logins; `sudo` escalation failures; etc.
 
-The ELK VM exposes an Elastic Stack instance. **Docker** is used to download and manage an ELK container.
+The ELK VM exposes an Elastic Stack instance. Docker is used to download and manage an ELK container.
 
 Rather than configure ELK manually, we opted to develop a reusable Ansible Playbook to accomplish the task. This playbook is duplicated below.
 
