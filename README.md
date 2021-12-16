@@ -590,7 +590,7 @@ To verify Filebeat was correctly installed on the web servers use the following 
   
   ![Data received](Images/KibannaDataReceived.jpg)
   
-Next click the System Log Dashboard button to view the web app activity of Web1, Web2 and Web3 through Kibana's interface and visualizations:
+  - Next click the System Log Dashboard button to view the web app activity of Web1, Web2 and Web3 through Kibana's interface and visualizations:
 
 ![dashboard](Images/KibanaSysLogDash.jpg)
   
