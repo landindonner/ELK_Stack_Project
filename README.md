@@ -10,9 +10,9 @@ Key highlights from the project included in this document:
 - Access Policies
 - Automated Deployment and Configuration with Ansible
 - ELK Stack Configuration
-  - Monitored servers
-  - Beats utilized
- 
+  - Automated deployment with Ansible
+  - Monitoring Web Applications with Beats
+   
 ### Diagram and Description of Network Topology
 
 ![STUDENT TODO: Update image file path](Images/ELK_Stack_Diagram.png)  
@@ -638,6 +638,10 @@ setup.kibana:
 ![dashboard](Images/KibanaDockerMetricDash.jpg)
 
 If you can see metrics from all three web servers, then Metricbeat was successfully deployed. 
+
+
+
+
 
 **Congratulations** - this completes the full deployment of the ELK Stack monitoring project!
 
