@@ -437,7 +437,8 @@ The following beats are installed on the web servers in this network:
 - **Filebeat**: Filebeat detects changes to the filesystem. Typically, it is used to collect and parse system logs.
 - **Metricbeat**: Metricbeat detects changes in system metrics, such as CPU/RAM usage. Additionally, it will detect SSH login attempts, and failed `sudo` escalations.
 
-**Filebeats**
+
+####Filebeat####
 
 The first step is to install Filebeats on both web servers using Ansible. The instructions are the same as mentioned previously. First create the Ansible playbook, then run the playbook to deploy. The Filebeat playbook:
 
@@ -596,9 +597,10 @@ To verify Filebeat was correctly installed on the web servers use the following 
   
 This completes the successful deployment of ELK Stack with Filebeat data shipper. 
 
-**Metricbeats**
 
-To install Metricbeats for additional data analytics, follow the same procedure as described above for Filebeat. The differnces are described below:
+####Metricbeats####
+
+To install Metricbeats for additional data analytics, follow the same procedure as described above for Filebeat. The differences are described below:
 
 1. Metricbeat configuration file - for this implementation we downloaded the following configuration file in the `/etc/ansible/files/` directory:
     
