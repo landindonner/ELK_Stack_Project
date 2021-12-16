@@ -141,8 +141,84 @@ Ansible works by creating a python script and then runs that script on the targe
 
 The next task is to create an Ansible playbook that installed Docker and configure all of the virtual web servers with the DVWA web app. This is done by using nano to create a yml file in the ansible directory in the Ansible container:
  ```bash
-  root@container_ID:~# nano /etc/ansible/example-playbook.yml
+  root@container_ID:~# nano /etc/ansible/playbook-name.yml
   ```
+This is the yml code used to install Docker and create the DVWA containers:
+
+```bash
+---
+- name: configure web vms with docker
+  hosts: webservers
+  become: true
+  tasks: 
+
+  - name: docker.io 
+    apt:
+      update_cache: yes
+      name: docker.io
+      state: present
+
+  - name: install pip3  
+    apt: 
+      name: python3-pip
+      state: present
+
+  - name: Install Python Docker Module
+    pip:
+      name: docker
+      state: present
+
+  - name: download and launch our DVWA web container
+    docker_container: 
+      name: dvwa
+      image: cyberxsecurity/dvwa
+      state: started
+      restart_policy: always
+      published_ports: 80:80   
+
+  - name: enable docker service 
+    systemd: 
+     name: docker
+     enabled: yes
+   ```
+   
+ The final step is to run the playbook using the ansible-playbook command: ```bash ansible-playbook playbook-name.yml```
+ Running this playbook executes all of the commands in the playbook on each server identified in the hosts file in the ansible directory.
+ If run successfully, the output appears as follows:
+ 
+ ```bash
+    root@container_ID:~# ansible-playbook /etc/ansible/playbook-name.yml
+
+    PLAY [Config Web VM with Docker] ***************************************************************
+
+    TASK [Gathering Facts] *************************************************************************
+    ok: [10.0.0.5]
+    ok  [10.0.0.6]
+   
+    TASK [docker.io] *******************************************************************************
+    [WARNING]: Updating cache and auto-installing missing dependency: python-apt
+    changed: [10.0.0.5]
+    changed: [10.0.0.6]
+
+    TASK [Install pip3] *****************************************************************************
+    changed: [10.0.0.5]
+    changed: [10.0.0.6]
+
+    TASK [Install Docker python module] ************************************************************
+    changed: [10.0.0.5]
+    changed: [10.0.0.6]
+
+    TASK [download and launch a docker web container] **********************************************
+    changed: [10.0.0.5]
+    changed: [10.0.0.6]
+
+    PLAY RECAP *************************************************************************************
+    10.0.0.5                   : ok=6    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0 
+    10.0.0.6                   : ok=6    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0  
+  ```
+ 
+Now you can use the administrators machine with the IP address that is allowed to access the RedTeamSecurityGroup to test the deployment. Because the web servers hosting the DVWA do not have a public IP and are behind a load balancer, the web app is accessed using the IP of the load balancer. 
+
 
 ## ELK Server Configuration
 
