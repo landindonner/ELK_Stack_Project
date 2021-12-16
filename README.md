@@ -224,24 +224,31 @@ Now you can use the administrators machine with the IP address that is allowed t
 The login credentials for the DVWA are ```bash admin:password``` 
 Upon successful login, the user will see a page similar to the one below. Click the ![DB button](Images/DVWA_CreateDB.jpg) to set up the DVWA web application. 
 
-![set up page](Images/DVWA_CreateDB.jpg)
+![set up page](Images/DVWA_DB_Setup.jpg)
 
 
 ## ELK Server Configuration
 
-Integrating an ELK server allows users to easily monitor the vulnerable VMs for changes to the **file systems of the VMs on the network**, as well as watch **system metrics**, such as CPU usage; attempted SSH logins; `sudo` escalation failures; etc.
+Previous sections covered ELK Server creation and configuration in Azure. This section will cover deploying the ELK Server image using Ansible. 
 
-The ELK VM exposes an Elastic Stack instance. Docker is used to download and manage an ELK container.
+The ELK Stack is an open-source software platform that includes three powerful tools: Elasticsearch, Logstash, and Kibana. 
+ - Logstash aggregates data from multiple sources, generally log data and sends it to Elasticsearch. 
+ - Elasticsearch is a search and analytics engine used as centeralized data pool.
+ - Kibana creates visulizations of that data in multiple views, graphs and charts. 
 
-Rather than configure ELK manually, we opted to develop a reusable Ansible Playbook to accomplish the task. This playbook is duplicated below.
+Security analysts can utilize an integrated ELK server to:
+ - Monitor the vulnerable web applications
+ - Detect changes to the file systems of the VMs on the network using Filebeats
+ - Watch system metrics such as, CPU usage, attempted SSH logins, `sudo` escalation failures using Metricbeats.
+
+To deploy the ELK 
 
 
 To use this playbook, one must log into the Jump Box, then issue: `ansible-playbook install_elk.yml elk`. This runs the `install_elk.yml` playbook on the `elk` host.
 
 
-Ansible was used to automate configuration of the ELK machine. No configuration was performed manually, which is advantageous because...
 
-- _TODO: What is the main advantage of automating configuration with Ansible?_
+
 
 The playbook implements the following tasks:
 - _TODO: In 3-5 bullets, explain the steps of the ELK installation play. E.g., install Docker; download image; etc._
@@ -249,11 +256,6 @@ The playbook implements the following tasks:
 - ...
 
 
-The following screenshot displays the result of running `docker ps` after successfully configuring the ELK instance.
-
-- _TODO_: Update the image file path with the name of your screenshot of docker ps output:
-
-  ![STUDENT TODO: Update image file path](Images/docker_ps_output.png)
 
 
 
@@ -323,7 +325,6 @@ We have installed the following Beats on these machines:
 These Beats allow us to collect the following information from each machine:
 - **Filebeat**: Filebeat detects changes to the filesystem. Specifically, we use it to collect Apache logs.
 - **Metricbeat**: Metricbeat detects changes in system metrics, such as CPU usage. We use it to detect SSH login attempts, failed `sudo` escalations, and CPU/RAM statistics.
-- **Packetbeat**: Packetbeat collects packets that pass through the NIC, similar to Wireshark. We use it to generate a trace of all activity that takes place on the network, in case later forensic analysis should be warranted.
 
 The playbook below installs Metricbeat on the target hosts. The playbook for installing Filebeat is not included, but looks essentially identical — simply replace `metricbeat` with `filebeat`, and it will work as expected.
 
