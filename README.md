@@ -44,21 +44,23 @@ was added to the rule to ensure only traffic from this IP address could access t
 SSH access from the jump box to the web servers was permitted. 
 
 The ELK server was created in it's own virtual network. As a result, a separate security group was created to manage traffic to and from the ELK server. A rule was created to 
-allow web traffic from the administrator's IP to the ELK server to view the aggregated log data in **Kibana**. Access via SSH was also permitted on the ELK server. Public SSH keys from the administrator account were added to increase security around SSH access. 
+allow web traffic from the administrator's IP to the ELK server to view the aggregated log data in **Kibana**. Access via SSH was also permitted on the ELK server. Public SSH keys from the administrator account were added to increase security around SSH access. Finally, a **Peering** was created between the two networks in order to share traffic.
 
 
 ## Automated Deployment and Configuration Using Ansible
-For this network, the Ansible container was downloaded to the jump box to serve as a provisioner for the network. **Containers** are simplified virtual machines that are dedicated to one task. Multiple containers can share the resources and operating system of a virtual machine. This way we could deploy apps and configure servers using Ansible playbooks. **Ansible playbooks** use YML (YAML Ain't Markup Language) files in order to create a series of commands to be executed on multiple servers. This automation tool reduced deployment and configuration time in this small set up of only four severs and would be extremely powerful in a network of hundreds or thousands of servers. Finally, we utilized **Docker** to create and manage our containers. 
+For this network, the Ansible container was downloaded to the jump box to serve as a provisioner for the network. **Containers** are simplified virtual machines that are dedicated to one task. Multiple containers can share the resources and operating system of a single virtual machine. These lightweight virtual machines contained on a single virtual machine on a network saves system resources and reduces costs. **Ansible playbooks** use YML (YAML Ain't Markup Language) files in order to create a series of commands to be executed on multiple servers. This enables rapid deployment and configuration of many servers simultaneously, reducing errors, creating uniformity and lowering administration costs. Finally, we utilized **Docker** a common container manager app, to create and manage our containers. 
 
-The commands to install Docker and then use Docker to create the Ansible container:
+The commands to install Docker on the jump box and then use Docker to create the Ansible container:
 
-1. Install Docker: `sudo apt update` then `sudo apt install docker.io`
+1. SSH into the jump box from a terminal using the admin and SSH key configured on the jump box: ```ssh RedAdmin@104.42.221.76```
 
-2. Check Docker status: `sudo systemctl status docker` or Start Docker status: `sudo systemctl start docker`
+2. Install Docker: `sudo apt update` then `sudo apt install docker.io`
 
-3. Pull the Ansible container: `sudo docker pull cyberxsecurity/ansible`
+3. Check Docker status: `sudo systemctl status docker` or Start Docker status: `sudo systemctl start docker`
 
-4. Launch the Ansible container: `docker run -ti cyberxsecurity/ansible:latest bash` 
+4. Pull the Ansible container: `sudo docker pull cyberxsecurity/ansible`
+
+5. Launch the Ansible container: `docker run -ti cyberxsecurity/ansible:latest bash` 
 
 Once the Ansible container is deployed on the jump box you can SSH to the jump box and connect to the container with the following commands:
 1. List all containers: `docker container list -a` the Ansible container will be given a randomized name. 
@@ -67,7 +69,7 @@ Once the Ansible container is deployed on the jump box you can SSH to the jump b
 
 3. Connect to the container using attach: ```bash $ sudo docker attach container_name``` Linux will show you have connected by giving root access prompt. 
 
-The next step to take before running Ansible playbooks to deploy the web application to the web servers is to configure the Ansible host file and the ansible.cfg file. The hosts file is where to compile the list of servers Ansible will deploy to. The configuration file, ansible.cfg is where the system administrator login credentials will be configured. 
+Before running Ansible playbooks to deploy the web application to the web servers, the Ansible host file and the ansible.cfg file must be updated. The hosts file will list the IP address Ansinble will reference in deployment. The configuration file, ansible.cfg, is where the system administrator login credentials will be configured. 
 
 Run `cd /etc/ansible` and then `ls` to show all the files:
 
@@ -76,9 +78,9 @@ Run `cd /etc/ansible` and then `ls` to show all the files:
     root@containerID:/etc/ansible# ls
     ansible.cfg  hosts
     ```
-Use Nano to open the `ansible.cfg` file: `root@containerID:/etc/ansible# nano ansible.cfg`
+Use nano to open the `ansible.cfg` file: `root@containerID:/etc/ansible# nano ansible.cfg`
 
-- This setting  is to be changed is the `remote_user`. The default admin user name is "root". Replace this with the admin user name used to set up the VMs. 
+- This setting  is to be changed is the `remote_user`. The default admin user name is "root". Replace this with the admin user name used to set up the VMs (RedAdmin). 
 
     ```bash
     # What flags to pass to sudo
@@ -100,13 +102,13 @@ Use Nano to open the `ansible.cfg` file: `root@containerID:/etc/ansible# nano an
     #module_name = command
     ```
 
-Next use Nano to edit the IP addresses in the hosts file: `root@containerID:/etc/ansible# nano hosts`
+Next use nano to edit the IP addresses in the hosts file: `root@containerID:/etc/ansible# nano hosts`
 
 Hosts can be grouped together under headers using brackets: `[webservers]` or `[databases]` or `[workstations]`
 
 - Uncomment the `[webservers]` header line and add the IP addresses of all of the web servers: `10.0.0.5, 10.0.0.6, 10.0.0.7`
 
-Ansible works by creating a python script and then runs that script on the target machine using that machine's installation of Python. Typically, Ansible may have issues determining which python to use on the target machine, but this is solved by forcing ansible to use python 3.
+Ansible works by creating a Python script and then running that script on the target using that machine's installation of Python. Historically, Ansible has had issues determining which version of Python to use on the target machine. This is resolved by forcing ansible to use Python 3 using a configuration in the hosts file:
 
 - Add the line: `ansible_python_interpreter=/usr/bin/python3` besides each IP address.
 
@@ -139,11 +141,11 @@ Ansible works by creating a python script and then runs that script on the targe
     10.0.0.7 ansible_python_interpreter=/usr/bin/python3
  ```
 
-The next task is to create an Ansible playbook that installed Docker and configure all of the virtual web servers with the DVWA web app. This is done by using nano to create a yml file in the ansible directory in the Ansible container:
+The next task is to create an Ansible playbook that installs Docker and configures all of the virtual web servers with the DVWA web app. This is done by using nano to create a YAML file in the ansible directory in the Ansible container:
  ```bash
   root@container_ID:~# nano /etc/ansible/playbook-name.yml
   ```
-This is the yml code used to install Docker and create the DVWA containers:
+This is the Ansible playbook code used to install Docker and create the DVWA containers:
 
 ```bash
 ---
@@ -184,7 +186,7 @@ This is the yml code used to install Docker and create the DVWA containers:
    
  The final step is to run the playbook using the ansible-playbook command: ```bash ansible-playbook playbook-name.yml```
  Running this playbook executes all of the commands in the playbook on each server identified in the hosts file in the ansible directory.
- If run successfully, the output appears as follows:
+ Upon successful completion, the output appears as follows:
  
  ```bash
     root@container_ID:~# ansible-playbook /etc/ansible/playbook-name.yml
@@ -223,7 +225,7 @@ This is the yml code used to install Docker and create the DVWA containers:
     10.0.0.7                   : ok=6    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
   ```
  
-Now you can use the administrators machine with the IP address that is allowed to access the RedTeamSecurityGroup to test the deployment. Because the web servers hosting the DVWA do not have a public IP and are behind a load balancer, the web app is accessed using the IP of the load balancer. 
+Now you can use the IP address of the administrators machine that has access in the RedTeamSecurityGroup to test the deployment. Because the web servers hosting the DVWA do not have a public IP and are behind a load balancer, the web app is accessed using the IP of the load balancer. 
 
 ![DVWA Landing Page](Images/DVWA_landing.jpg)
 
@@ -235,21 +237,19 @@ Upon successful login, the user will see a page similar to the one below. Click 
 
 ## ELK Server Configuration
 
-Previous sections covered ELK Server creation and configuration in Azure. Under the same resource group, a new virtual network (VNet) was created for the ELK Server and the ELK-SERVER-nsg (network security group). Then a **Peering** was created between the two networks in order to share traffic. 
-
-This section will cover deploying the ELK Server image using Ansible. 
+Previous sections covered ELK Server creation and configuration in Azure. This section will cover deploying the ELK Server image using Ansible. 
 
 The ELK Stack is an open-source software platform that includes three powerful tools: Elasticsearch, Logstash, and Kibana. 
- - Logstash aggregates data from multiple sources, generally log data and sends it to Elasticsearch. 
+ - Logstash aggregates data from multiple sources, generally log data, and sends it to Elasticsearch. 
  - Elasticsearch is a search and analytics engine used as centeralized data pool.
  - Kibana creates visulizations of that data in multiple views, graphs and charts. 
 
 Security analysts can utilize an integrated ELK server to:
- - Monitor the vulnerable web applications
+ - Monitor traffic to web servers to detect exploits and identify vulnerabilities
  - Detect changes to the file systems of the VMs on the network using Filebeats
- - Watch system metrics such as, CPU usage, attempted SSH logins, `sudo` escalation failures using Metricbeats.
+ - Watch system metrics such as CPU usage, attempted SSH logins, and `sudo` escalation failures using Metricbeats
 
-The steps to connect to the Ansible container described above are repeated to navigate to the ansible directory. Additionally, the host file must be updated with the IP address for ELK server. Separate from the ```[webservers]``` header in the hosts file, an ```[ELK]``` section is created:
+The steps to connect to the Ansible container described above are repeated to navigate to the ansible directory. Additionally, the host file must be updated with the IP address of the ELK server. Separate from the ```[webservers]``` header in the hosts file, an ```[ELK]``` section is created:
 
 ```bash
 # This is the default ansible 'hosts' file.
@@ -303,7 +303,7 @@ The steps to connect to the Ansible container described above are repeated to na
 #db-[99:101]-node.example.com
 ```
 
-The next step is to create a separate playbook to deploy Docker and configure the ELK server with an Ansible playbook. Following the same instructions for creating the YAML file above, the following is the Ansible playbook:
+The next step is to create a separate playbook to deploy Docker and configure the ELK server with an Ansible playbook. Following the same instructions for creating the YAML file above, the following is the Ansible playbook for creating the container on the ELK server:
 
 ```yml
 ---
@@ -351,7 +351,7 @@ The next step is to create a separate playbook to deploy Docker and configure th
      enabled: yes 
  ```
 
-The modules for installing Docker and Python were the same as the previous playbook, however there were three changes to this playbook. First, we configured this playbook to only run the playbook on the IP addresses added to the ELK section of the hosts file. The same remote user was used so we could secure the ELK server with the same public SSH key used for securing the web servers. This allows the administrator to SSH into every server from the Ansible container. 
+The modules for installing Docker and Python were the same as the previous playbook, however there were three additional modules in this playbook. First, we configured this playbook to only run the on the IP addresses added to the ELK section of the hosts file. The same remote user was used so we could secure the ELK server with the same public SSH key used for securing the web servers. This allows the administrator to SSH into every server from the Ansible container. 
 
 ```yml
 - name: Config elk VM with Docker
@@ -361,7 +361,7 @@ The modules for installing Docker and Python were the same as the previous playb
   tasks:
 ```
 
-The next section of the playbook is a system requirement for running the ELK container. More info [at the `elk-docker` documentation](https://elk-docker.readthedocs.io/#prerequisites). Memory must be increased as follows:
+The next additional module of the playbook is a system requirement for running the ELK container. More info [at the `elk-docker` documentation](https://elk-docker.readthedocs.io/#prerequisites). Memory must be increased as follows:
 
 ```yml
 - name: Use more memory
@@ -384,9 +384,9 @@ Lastly, the ELK Docker container configuration must be included. The sebp/elk:76
       published_ports: 5601:5601,9200:9200,5044:5044
  ```
 
-Next, the Ansible playbook must be run to complete the deployment. ```root@containerID:/etc/ansible/files# ansible-playbook install-elk.yml```
+Finally, the Ansible playbook must be run to complete the deployment. ```root@containerID:/etc/ansible/files# ansible-playbook install-elk.yml```
 
-The output should verify successful deployement to the one IP address configured in the hosts file:
+The output should verify successful deployement to the IP address of the ELK server configured in the hosts file:
 
 ```bash
 [WARNING]: ansible.utils.display.initialize_locale has not been called, this may result in incorrectly calculated text
@@ -426,19 +426,20 @@ PLAY RECAP *********************************************************************
 
 ### Monitoring Web Applications with Beats
 
-The ELK server is configured to monitor Web1 and Web2 using tools in the ELK Stack. The next step is to use Ansible to deploy **Beats** to both web servers.
-
-Taking raw log files and trying to make sense of all the data is often difficult and time consuming. We can use Beats to collect, parse, and visualize ELK logs in a single command. Beats are lightweight data shippers that take data from various sources and sends them to Elasticsearch. Examples of data shipped for monitoring:
+The ELK server is configured to monitor Web1, Web2 and Web3 using tools in the ELK Stack. The next step is to use Ansible to deploy **Beats** to all three web servers.
+Beats are lightweight data shippers that take data from various sources and sends them to Elasticsearch. Examples of data shipped for monitoring:
  - Contents of a log file
  - Metrics on a system
  - Network activity
 
 The following beats are installed on the web servers in this network:
 
-- **Filebeat**: Filebeat detects changes to the filesystem. Specifically, it is used to collect and parse Apache logs.
+- **Filebeat**: Filebeat detects changes to the filesystem. Typically, it is used to collect and parse system logs.
 - **Metricbeat**: Metricbeat detects changes in system metrics, such as CPU/RAM usage. Additionally, it will detect SSH login attempts, and failed `sudo` escalations.
 
-The next step is to install Filebeats on both web servers using Ansible. The instructions are the same as mentioned previously. First create the Ansible playbook, then run the playbook to deploy. The Filebeat playbook:
+**Filebeats**
+
+The first step is to install Filebeats on both web servers using Ansible. The instructions are the same as mentioned previously. First create the Ansible playbook, then run the playbook to deploy. The Filebeat playbook:
 
 ```yml
 ---
@@ -488,7 +489,7 @@ The next module references the Filebeat configuration file. In the configuration
 
 `curl https://gist.githubusercontent.com/slape/5cc350109583af6cbe577bbcc0710c93/raw/eca603b72586fbe148c11f9c87bf96a63cb25760/Filebeat > /etc/ansible/files/filebeat-config.yml`
 
-The configuration file is too large to post here. For reference: https://github.com/landindonner/ELK_Stack_Project/blob/main/Playbooks/filebeat-config.yml 
+For reference: https://github.com/landindonner/ELK_Stack_Project/blob/main/Playbooks/filebeat-config.yml 
 
 On line 1105 and 1805 is where the IP addresses are configured for the ELK server. With this configuration file updated and stored in the referenced location, the following Filebeat playbook module will run correctly:
 
@@ -594,6 +595,8 @@ Next click the System Log Dashboard button to view the web app activity of Web1,
 ![dashboard](Images/KibanaSysLogDash.jpg)
   
 This completes the successful deployment of ELK Stack with Filebeat data shipper. 
+
+**Metricbeats**
 
 To install Metricbeats for additional data analytics, follow the same procedure as described above for Filebeat. The differnces are described below:
 
