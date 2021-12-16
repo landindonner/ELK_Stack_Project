@@ -219,6 +219,13 @@ This is the yml code used to install Docker and create the DVWA containers:
  
 Now you can use the administrators machine with the IP address that is allowed to access the RedTeamSecurityGroup to test the deployment. Because the web servers hosting the DVWA do not have a public IP and are behind a load balancer, the web app is accessed using the IP of the load balancer. 
 
+![DVWA Landing Page](Images/DVWA_landing.jpg)
+
+The login credentials for the DVWA are ```bash admin:password``` 
+Upon successful login, the user will see a page similar to the one below. Click the ![DB button](Images/DVWA_CreateDB.jpg) to set up the DVWA web application. 
+
+![set up page](Images/DVWA_CreateDB.jpg)
+
 
 ## ELK Server Configuration
 
