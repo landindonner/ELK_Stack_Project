@@ -520,15 +520,20 @@ To verify Filebeat was correctly installed on the web servers use the following 
   - Navigate to the ELK server using the IP address through port 5601: http://104.42.221.76:5601/app/kibana
    
   - On the home page, click the in the Observability section to navigate to the Add Data to Kibana page: 
-    ![add log button](Images/KibanaAddLog.jpg)
+   
+  ![add log button](Images/KibanaAddLog.jpg)
   
   - On the Add Data to Kibana page click the Systems Logs link in the Systems Log box
-    ![sys logs](Images/KibanaSysLogs.jpg)
+  
+  ![sys logs](Images/KibanaSysLogs.jpg)
   
   - On the Systems logs page, scroll to the bottom to step 5 Module Status and click the Check Data button. If successful this result is displayed:
-    ![Data received](Images/KibannaDataReceived.jpg)
   
-Next click the ![dashboard](Images/KibanaSysLogDash.jpg) button to view the web app activity of Web1, Web2 and Web3 through Kibana's interface and visualizations. 
+  ![Data received](Images/KibannaDataReceived.jpg)
+  
+Next click the System Log Dashboard button to view the web app activity of Web1, Web2 and Web3 through Kibana's interface and visualizations.
+
+![dashboard](Images/KibanaSysLogDash.jpg)
   
 
 
