@@ -67,6 +67,78 @@ Once the Ansible container is deployed on the jump box you can SSH to the jump b
 
 3. Connect to the container using attach: ```bash $ sudo docker attach container_name``` Linux will show you have connected by giving root access prompt. 
 
+The next step to take before running Ansible playbooks to deploy the web application to the web servers is to configure the Ansible host file and the ansible.cfg file. The hosts file is where to compile the list of servers Ansible will deploy to. The configuration file, ansible.cfg is where the system administrator login credentials will be configured. 
+
+Run `cd /etc/ansible` and then `ls` to show all the files:
+
+    ```bash
+    root@containerID:~# cd /etc/ansible/
+    root@containerID:/etc/ansible# ls
+    ansible.cfg  hosts
+    ```
+Use Nano to open the `ansible.cfg` file: `root@containerID:/etc/ansible# nano ansible.cfg`
+
+- This setting  is to be changed is the `remote_user`. The default admin user name is "root". Replace this with the admin user name used to set up the VMs. 
+
+    ```bash
+    # What flags to pass to sudo
+    # WARNING: leaving out the defaults might create unexpected behaviors
+    #sudo_flags = -H -S -n
+
+    # SSH timeout
+    #timeout = 10
+
+    # default user to use for playbooks if user is not specified
+    # (/usr/bin/ansible will use current user as default)
+    remote_user = YOUR_USER_NAME
+
+    # logging is off by default unless this path is defined
+    # if so defined, consider logrotate
+    #log_path = /var/log/ansible.log
+
+    # default module name for /usr/bin/ansible
+    #module_name = command
+    ```
+
+Next use Nano to edit the IP addresses in the hosts file: `root@containerID:/etc/ansible# nano hosts`
+
+Hosts can be grouped together under headers using brackets: `[webservers]` or `[databases]` or `[workstations]`
+
+- Uncomment the `[webservers]` header line and add the IP addresses of all of the web servers: `10.0.0.5, 10.0.0.6, 10.0.0.7`
+
+Ansible works by creating a python script and then runs that script on the target machine using that machine's installation of Python. Typically, Ansible may have issues determining which python to use on the target machine, but this is solved by forcing ansible to use python 3.
+
+- Add the line: `ansible_python_interpreter=/usr/bin/python3` besides each IP address.
+
+ ```bash
+    # This is the default ansible 'hosts' file.
+    #
+    # It should live in /etc/ansible/hosts
+    #
+    #   - Comments begin with the '#' character
+    #   - Blank lines are ignored
+    #   - Groups of hosts are delimited by [header] elements
+    #   - You can enter hostnames or ip addresses
+    #   - A hostname/ip can be a member of multiple groups
+    # Ex 1: Ungrouped hosts, specify before any group headers.
+
+    ## green.example.com
+    ## blue.example.com
+    ## 192.168.100.1
+    ## 192.168.100.10
+
+    # Ex 2: A collection of hosts belonging to the 'webservers' group
+
+    [webservers]
+    ## alpha.example.org
+    ## beta.example.org
+    ## 192.168.1.100
+    ## 192.168.1.110
+    10.0.0.5 ansible_python_interpreter=/usr/bin/python3
+    10.0.0.6 ansible_python_interpreter=/usr/bin/python3
+    10.0.0.7 ansible_python_interpreter=/usr/bin/python3
+ ```
+
 
 The web application we used in this scenario is caled 'DVWA' or "Damn Vulnerable Web Application. This testing tool features several common exploits in order to teach security professionals how web applications can be exploited. 
 
