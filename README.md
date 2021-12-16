@@ -77,7 +77,7 @@ Run `cd /etc/ansible` and then `ls` to show all the files:
     ```
 Use nano to open the `ansible.cfg` file: `root@containerID:/etc/ansible# nano ansible.cfg`
 
-- This setting  is to be changed is the `remote_user`. The default admin user name is "root". Replace this with the admin user name used to set up the VMs (RedAdmin). 
+- This setting  is to be changed is `remote_user`. Uncomment this field and replace "root" with the admin user name used to set up the VMs (RedAdmin). 
 
     ```bash
     # What flags to pass to sudo
