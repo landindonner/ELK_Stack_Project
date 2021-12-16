@@ -577,11 +577,11 @@ PLAY RECAP *********************************************************************
 To verify Filebeat was correctly installed on the web servers use the following steps:
   - Navigate to the ELK server using the IP address through port 5601: http://104.42.221.76:5601/app/kibana
    
-  - On the home page, click the in the Observability section to navigate to the Add Data to Kibana page: 
+  - On the home page, click Add log data button in the Observability section to navigate to the Add Data to Kibana page: 
    
   ![add log button](Images/KibanaAddLog.jpg)
   
-  - On the Add Data to Kibana page click the Systems Logs link in the Systems Log box
+  - On the Add Data to Kibana page, under the Logs tab, click the Systems logs link in the Systems log box
   
   ![sys logs](Images/KibanaSysLogs.jpg)
   
@@ -616,7 +616,35 @@ setup.kibana:
 ```
 
 2. Follow the steps for creating and running the Ansible playbook as described above in the Filebeat section. Replace instances of "Filebeat" with "Metricbeat" in the playbook.
-3. When verifying the successful deployment 
+
+3. When verifying the successful deployment use the following steps:
+  
+  - Navigate to the ELK server using the IP address through port 5601: http://104.42.221.76:5601/app/kibana
+   
+  - On the home page, click the Add metric data button in the Observability section to navigate to the Add Data to Kibana page: 
+   
+  ![add metrics button](Images/KibanaAddMetricData.jpg)
+  
+  - On the Add Data to Kibana page, under the Metrics tab click the Docker metrics link in the Docker metrics box:
+  
+  ![docker metrics](Images/KibanaDockerMetrics.jpg)
+  
+  - On the Docker metrics page, scroll to the bottom to step 5 'Module Status' and click the Check Data button. If successful this result is displayed:
+  
+  ![Data received](Images/KibanaMetricDockerDataRecv.jpg)
+  
+  - Next click the Docker metrics dashboard button to view the web app system metrics of Web1, Web2 and Web3 through Kibana's interface and visualizations:
+
+![dashboard](Images/KibanaDockerMetricDash.jpg)
+
+If you can see metrics from all three web servers, then Metricbeat was successfully deployed. 
+
+**Congratulations** - this completes the full deployment of the ELK Stack monitoring project!
+
+
+
+
+
 
 
 
