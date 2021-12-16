@@ -4,7 +4,7 @@ The following is a complete walkthrough guide in how to deploy a simple virtual 
 The purpose of the project was to simulate a live environment with potentially vulnerable web applications. Additionally,
 the project demonstrates how to use the ELK Stack to aggregate and view log data from multiple servers. 
 
-Key highlights from the project included in this document:
+Key highlights from the project:
 - Diagram and Description of Network Topology
 - Load Balancing
 - Access Policies
@@ -15,10 +15,10 @@ Key highlights from the project included in this document:
    
 ### Diagram and Description of Network Topology
 
-![STUDENT TODO: Update image file path](Images/ELK_Stack_Diagram.png)  
+![Topology Diagram](Images/ELK_Stack_Diagram.png)  
 
 
-The main purpose of this network is to simulate a network hosting vulnerable web applications in order to learn how ELK can be used to monitor traffic to those web applications. 
+The main purpose of this network is to simulate a network hosting vulnerable web applications in order to learn how ELK can be used to monitor traffic to those web applications. Below is a table summarizing the server names and details: 
 
 Table 1 - Summary of server names and details
 | Name     |   Function  | IP Address |  Operating System  |
@@ -35,16 +35,13 @@ In addition to the above, a **load balancer** was placed in front of the web ser
 
 **Red Team Availability Set**: Web1-Web2-Web3
 
-One of the most important aspects of securing a network is ensuring it's **Availability**. The availability of network resources is a key component of the CIA triad. Load balancing and redundancy are two ways to increase the uptime of network resources. In this network, several redundant web servers were created behind a load balancer. They were grouped together logically in a backend pool. This means if one of the web servers were taken down, another instance can immediately receive traffic from the load balancer. In addition to creating this concept of failover, the load balancer can spread the traffic to multiple servers should the network be flooded with traffic. This is especially useful in mitigating the risk of a distributed denial-of-service attack (DDOS).
+One of the most important aspects of securing a network is ensuring it's **Availability**. The availability of network resources is a one component of the CIA triad. Load balancing and redundancy are two ways to increase the uptime of network resources. In this network, three redundant web servers were created behind a load balancer. They were grouped together logically in a backend pool. This means if one of the web servers were taken down, another instance can immediately receive traffic from the load balancer. In addition to creating failover, the load balancer can spread the traffic to multiple servers should the network be flooded with traffic. This is especially useful in mitigating the risk of a distributed denial-of-service attack (DDOS).
 
 ## Access Policies
-**Confidentiality** is another key component of the CIA triad. Confidentiality refers to the cybersecurity measures surrounding access controls to data and network resources. 
-In Azure, this is accomplished with Network Security Groups. For this network most of the security controls for access to the jump box and the web servers were managed by RedTeamSecurityGroup. To harden the system a rule was created that only allowed web traffic to the jump box for system administration. The administrator's Public IP address 
-was added to the rule to ensure only traffic from this IP address could access the jump box. Additionally, all of the machines in the network were configured to allow SSH access for network administration. We added security to this potential vulnerability by only allowing SSH from machines with allowed public SSH keys. Finally, we added a rule that only
-SSH access from the jump box to the web servers was permitted. 
+**Confidentiality** is another component of the CIA triad. Confidentiality refers to the cybersecurity measures surrounding access controls to data and network resources. 
+In Azure, this is accomplished with Network Security Groups. For this network most of the security controls for access to the jump box and the web servers were managed by RedTeamSecurityGroup. To harden the system a rule was created that only allowed web traffic to the jump box for system administration. The administrator's public IP address was added to the rule to ensure only traffic from this IP address could access the jump box. Additionally, all of the machines in the network were configured to allow SSH access for network administration. We added security to this potential vulnerability by only allowing SSH from machines with allowed public SSH keys. Finally, we added a rule that only SSH access from the jump box to the web servers was permitted. 
 
-The ELK server was created in it's own virtual network. As a result, a separate security group was created to manage traffic to and from the ELK server. A rule was created to 
-allow web traffic from the administrator's IP to the ELK server to view the aggregated log data in **Kibana**. Access via SSH was also permitted on the ELK server. Public SSH keys from the administrator account were added to increase security around SSH access. Finally, a **Peering** was created between the two networks in order to share traffic.
+The ELK server was created in it's own virtual network. As a result, a separate security group was created to manage traffic to and from the ELK server. A rule was created to allow web traffic from the administrator's IP to the ELK server to view the aggregated log data in **Kibana**. Access via SSH was also permitted on the ELK server. Public SSH keys from the administrator account were added to increase security around SSH access. Finally, a **Peering** was created between the two networks in order to share traffic.
 
 
 ## Automated Deployment and Configuration Using Ansible
@@ -438,7 +435,7 @@ The following beats are installed on the web servers in this network:
 - **Metricbeat**: Metricbeat detects changes in system metrics, such as CPU/RAM usage. Additionally, it will detect SSH login attempts, and failed `sudo` escalations.
 
 
-####Filebeat####
+#### Filebeat
 
 The first step is to install Filebeats on both web servers using Ansible. The instructions are the same as mentioned previously. First create the Ansible playbook, then run the playbook to deploy. The Filebeat playbook:
 
@@ -598,9 +595,9 @@ To verify Filebeat was correctly installed on the web servers use the following 
 This completes the successful deployment of ELK Stack with Filebeat data shipper. 
 
 
-####Metricbeats####
+#### Metricbeat
 
-To install Metricbeats for additional data analytics, follow the same procedure as described above for Filebeat. The differences are described below:
+To install Metricbeat for additional data analytics, follow the same procedure as described above for Filebeat. The differences are described below:
 
 1. Metricbeat configuration file - for this implementation we downloaded the following configuration file in the `/etc/ansible/files/` directory:
     
