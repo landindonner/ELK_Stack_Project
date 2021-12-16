@@ -637,7 +637,9 @@ setup.kibana:
 
 ![dashboard](Images/KibanaDockerMetricDash.jpg)
 
-If you can see metrics from all three web servers, then Metricbeat was successfully deployed. 
+If metrics from all three web servers are displayed, then Metricbeat was successfully deployed. 
+
+Navigate back to the DVWA web interface at http://20.121.37.42/. Now the security analyst can interact with the DVWA and view log and metric data in Kibana: http://104.42.182.122:5601/ 
 
 
 
