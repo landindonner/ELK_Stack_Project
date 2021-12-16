@@ -603,5 +603,22 @@ To install Metricbeats for additional data analytics, follow the same procedure 
 
 The configuration file is too large to post here. For reference: https://github.com/landindonner/ELK_Stack_Project/blob/main/Playbooks/metricbeat-config.yml
 
+On line 62, update the IP address of the host to the IP address of the ELK Server:
+
+```yml
+
+#============================== Kibana =====================================
+
+# Starting with Beats version 6.0.0, the dashboards are loaded via the Kibana API.
+# This requires a Kibana endpoint configuration.
+setup.kibana:
+  host: "10.1.0.4:5601"
+```
+
+2. Follow the steps for creating and running the Ansible playbook as described above in the Filebeat section. Replace instances of "Filebeat" with "Metricbeat" in the playbook.
+3. When verifying the successful deployment 
+
+
+
 
 
