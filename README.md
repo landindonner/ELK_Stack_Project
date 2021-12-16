@@ -489,6 +489,7 @@ The next module references the Filebeat configuration file. In the configuration
 `curl https://gist.githubusercontent.com/slape/5cc350109583af6cbe577bbcc0710c93/raw/eca603b72586fbe148c11f9c87bf96a63cb25760/Filebeat > /etc/ansible/files/filebeat-config.yml`
 
 The configuration file is too large to post here. For reference: https://github.com/landindonner/ELK_Stack_Project/blob/main/Playbooks/filebeat-config.yml 
+
 On line 1105 and 1805 is where the IP addresses are configured for the ELK server. With this configuration file updated and stored in the referenced location, the following Filebeat playbook module will run correctly:
 
 ```yml
@@ -516,6 +517,63 @@ The remaining modules are commands to enable, setup, start Filebeats and enable 
       enabled: yes
  ```
 
+To deploy Filebeat to the servers, run the Ansible playbook using the ansible playbook command: ```root@containerID:/etc/ansible/files# ansible-playbook filebeat_playbook.yml```
+
+If run correctly the out put will appear as follows:
+
+```yml
+[WARNING]: ansible.utils.display.initialize_locale has not been called, this may result in incorrectly calculated text
+widths that can cause Display to print incorrect line lengths
+
+PLAY [Installing and Launch Filebeat] **********************************************************************************
+
+TASK [Gathering Facts] *************************************************************************************************
+ok: [10.0.0.7]
+ok: [10.0.0.5]
+ok: [10.0.0.6]
+
+TASK [Download filebeat .deb file] *************************************************************************************
+changed: [10.0.0.7]
+changed: [10.0.0.6]
+changed: [10.0.0.5]
+
+TASK [Install filebeat .deb] *******************************************************************************************
+changed: [10.0.0.7]
+changed: [10.0.0.6]
+changed: [10.0.0.5]
+
+TASK [Drop in filebeat.yml] ********************************************************************************************
+ok: [10.0.0.5]
+ok: [10.0.0.6]
+changed: [10.0.0.7]
+
+TASK [Enable and Configure System Module] ******************************************************************************
+changed: [10.0.0.5]
+changed: [10.0.0.7]
+changed: [10.0.0.6]
+
+TASK [Setup filebeat] **************************************************************************************************
+changed: [10.0.0.5]
+changed: [10.0.0.6]
+changed: [10.0.0.7]
+
+TASK [Start filebeat service] ******************************************************************************************
+changed: [10.0.0.7]
+changed: [10.0.0.5]
+changed: [10.0.0.6]
+
+TASK [Enable service filebeat on boot] *********************************************************************************
+ok: [10.0.0.5]
+ok: [10.0.0.6]
+changed: [10.0.0.7]
+
+PLAY RECAP *************************************************************************************************************
+10.0.0.5                   : ok=8    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+10.0.0.6                   : ok=8    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+10.0.0.7                   : ok=8    changed=7    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+```
+
 To verify Filebeat was correctly installed on the web servers use the following steps:
   - Navigate to the ELK server using the IP address through port 5601: http://104.42.221.76:5601/app/kibana
    
@@ -531,60 +589,19 @@ To verify Filebeat was correctly installed on the web servers use the following 
   
   ![Data received](Images/KibannaDataReceived.jpg)
   
-Next click the System Log Dashboard button to view the web app activity of Web1, Web2 and Web3 through Kibana's interface and visualizations.
+Next click the System Log Dashboard button to view the web app activity of Web1, Web2 and Web3 through Kibana's interface and visualizations:
 
 ![dashboard](Images/KibanaSysLogDash.jpg)
   
+This completes the successful deployment of ELK Stack with Filebeat data shipper. 
+
+To install Metricbeats for additional data analytics, follow the same procedure as described above for Filebeat. The differnces are described below:
+
+1. Metricbeat configuration file - for this implementation we downloaded the following configuration file in the `/etc/ansible/files/` directory:
+    
+`curl https://gist.githubusercontent.com/slape/58541585cc1886d2e26cd8be557ce04c/raw/0ce2c7e744c54513616966affb5e9d96f5e12f73/metricbeat`
+
+The configuration file is too large to post here. For reference: https://github.com/landindonner/ELK_Stack_Project/blob/main/Playbooks/metricbeat-config.yml
 
 
-The playbook below installs Metricbeat on the target hosts. The playbook for installing Filebeat is not included, but looks essentially identical — simply replace `metricbeat` with `filebeat`, and it will work as expected.
 
-
-
-### Using the Playbooks
-In order to use the playbooks, you will need to have an Ansible control node already configured. We use the **jump box** for this purpose.
-
-To use the playbooks, we must perform the following steps:
-- Copy the playbooks to the Ansible Control Node
-- Run each playbook on the appropriate targets
-
-The easiest way to copy the playbooks is to use Git:
-
-```bash
-$ cd /etc/ansible
-$ mkdir files
-# Clone Repository + IaC Files
-$ git clone https://github.com/yourusername/project-1.git
-# Move Playbooks and hosts file Into `/etc/ansible`
-$ cp project-1/playbooks/* .
-$ cp project-1/files/* ./files
-```
-
-This copies the playbook files to the correct place.
-
-Next, you must create a `hosts` file to specify which VMs to run each playbook on. Run the commands below:
-
-```bash
-$ cd /etc/ansible
-$ cat > hosts <<EOF
-[webservers]
-10.0.0.5
-10.0.0.6
-
-[elk]
-10.0.0.8
-EOF
-```
-
-After this, the commands below run the playbook:
-
- ```bash
- $ cd /etc/ansible
- $ ansible-playbook install_elk.yml elk
- $ ansible-playbook install_filebeat.yml webservers
- $ ansible-playbook install_metricbeat.yml webservers
- ```
-
-To verify success, wait five minutes to give ELK time to start up. 
-
-Then, run: `curl http://10.0.0.8:5601`. This is the address of Kibana. If the installation succeeded, this command should print HTML to the console.
