@@ -480,43 +480,51 @@ The first module downloads the Debian Linux sytem file (.deb) for Filebeats usin
 
 The next module references the Filebeat configuration file. In the configuration file is where the IP address is updated for the ELK server. For this network the following configuration file was downloaded using the curl command:
 
-`curl https://gist.githubusercontent.com/slape/5cc350109583af6cbe577bbcc0710c93/raw/eca603b72586fbe148c11f9c87bf96a63cb25760/Filebeat > /etc/ansible/filebeat-config.yml`
+`curl https://gist.githubusercontent.com/slape/5cc350109583af6cbe577bbcc0710c93/raw/eca603b72586fbe148c11f9c87bf96a63cb25760/Filebeat > /etc/ansible/files/filebeat-config.yml`
+
+The configuration file is too large to post here. For reference: https://github.com/landindonner/ELK_Stack_Project/blob/main/Playbooks/filebeat-config.yml 
+On line 1105 and 1805 is where the IP addresses are configured for the ELK server. With this configuration file updated and stored in the referenced location, the following Filebeat playbook module will run correctly:
+
+```yml
+ - name: Drop in filebeat.yml
+    copy:
+      src: /etc/ansible/files/filebeat-config.yml
+      dest: /etc/filebeat/filebeat.yml
+ ```
+
+To verify Filebeat was correctly installed on the web servers use the following steps:
+  - Navigate to the ELK server using the IP address through port 5601: http://104.42.221.76:5601/app/kibana
+  - On the home page, click the ![add log button](Images/KibanaAddLog.jpg) in the Observability section to navigate to the Add Data to Kibana page
+  - On the Add Data to Kibana page click the Systems Logs link in the Systems Log box
+  -  ![sys logs](Images/KibanaSysLogs.jpg)
+  - On the Systems logs page, scroll to the bottom to step 5 Module Status and click the Check Data button. If successful this result is displayed:
+  
+  ![Data received](Images/KibannaDataReceived.jpg)
+  
+Next click the ![dashboard](Images/KibanaSysLogDash) button to view the web app activity of Web1, Web2 and Web3 through Kibana's interface and visualizations. 
+  
+The remaining modules are commands to enable, setup, start Filebeats and enable Filebeats everytime the servers are booted. 
+
+```yml
+ - name: Enable and Configure System Module
+    command: filebeat modules enable system
+
+  - name: Setup filebeat
+    command: filebeat setup
+   
+  - name: Start filebeat service
+    command: service filebeat start
+
+  - name: Enable service filebeat on boot
+    systemd:
+      name: filebeat
+      enabled: yes
+ ```
 
 
 The playbook below installs Metricbeat on the target hosts. The playbook for installing Filebeat is not included, but looks essentially identical — simply replace `metricbeat` with `filebeat`, and it will work as expected.
 
-```yaml
----
-- name: Install metric beat
-  hosts: webservers
-  become: true
-  tasks:
-    # Use command module
-  - name: Download metricbeat
-    command: curl -L -O https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-7.4.0-amd64.deb
 
-    # Use command module
-  - name: install metricbeat
-    command: dpkg -i metricbeat-7.4.0-amd64.deb
-
-    # Use copy module
-  - name: drop in metricbeat config
-    copy:
-      src: /etc/ansible/files/metricbeat-config.yml
-      dest: /etc/metricbeat/metricbeat.yml
-
-    # Use command module
-  - name: enable and configure docker module for metric beat
-    command: metricbeat modules enable docker
-
-    # Use command module
-  - name: setup metric beat
-    command: metricbeat setup
-
-    # Use command module
-  - name: start metric beat
-    command: service metricbeat start
-```
 
 ### Using the Playbooks
 In order to use the playbooks, you will need to have an Ansible control node already configured. We use the **jump box** for this purpose.
