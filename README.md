@@ -229,7 +229,9 @@ Upon successful login, the user will see a page similar to the one below. Click 
 
 ## ELK Server Configuration
 
-Previous sections covered ELK Server creation and configuration in Azure. This section will cover deploying the ELK Server image using Ansible. 
+Previous sections covered ELK Server creation and configuration in Azure. Under the same resource group, a new virtual network (VNet) was created for the ELK Server and the ELK-SERVER-nsg (network security group). Then a **Peering** was created between the two networks in order to share traffic. 
+
+This section will cover deploying the ELK Server image using Ansible. 
 
 The ELK Stack is an open-source software platform that includes three powerful tools: Elasticsearch, Logstash, and Kibana. 
  - Logstash aggregates data from multiple sources, generally log data and sends it to Elasticsearch. 
