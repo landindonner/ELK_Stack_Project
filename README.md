@@ -193,28 +193,34 @@ This is the yml code used to install Docker and create the DVWA containers:
 
     TASK [Gathering Facts] *************************************************************************
     ok: [10.0.0.5]
-    ok  [10.0.0.6]
+    ok: [10.0.0.6]
+    ok: [10.0.0.7]
    
     TASK [docker.io] *******************************************************************************
     [WARNING]: Updating cache and auto-installing missing dependency: python-apt
     changed: [10.0.0.5]
     changed: [10.0.0.6]
+    changed: [10.0.0.7]
 
     TASK [Install pip3] *****************************************************************************
     changed: [10.0.0.5]
     changed: [10.0.0.6]
+    changed: [10.0.0.7]
 
     TASK [Install Docker python module] ************************************************************
     changed: [10.0.0.5]
     changed: [10.0.0.6]
+    changed: [10.0.0.7]
 
     TASK [download and launch a docker web container] **********************************************
     changed: [10.0.0.5]
     changed: [10.0.0.6]
+    changed: [10.0.0.7]
 
     PLAY RECAP *************************************************************************************
     10.0.0.5                   : ok=6    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0 
-    10.0.0.6                   : ok=6    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0  
+    10.0.0.6                   : ok=6    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+    10.0.0.7                   : ok=6    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
   ```
  
 Now you can use the administrators machine with the IP address that is allowed to access the RedTeamSecurityGroup to test the deployment. Because the web servers hosting the DVWA do not have a public IP and are behind a load balancer, the web app is accessed using the IP of the load balancer. 
@@ -492,17 +498,6 @@ On line 1105 and 1805 is where the IP addresses are configured for the ELK serve
       dest: /etc/filebeat/filebeat.yml
  ```
 
-To verify Filebeat was correctly installed on the web servers use the following steps:
-  - Navigate to the ELK server using the IP address through port 5601: http://104.42.221.76:5601/app/kibana
-  - On the home page, click the ![add log button](Images/KibanaAddLog.jpg) in the Observability section to navigate to the Add Data to Kibana page
-  - On the Add Data to Kibana page click the Systems Logs link in the Systems Log box
-  -  ![sys logs](Images/KibanaSysLogs.jpg)
-  - On the Systems logs page, scroll to the bottom to step 5 Module Status and click the Check Data button. If successful this result is displayed:
-  
-  ![Data received](Images/KibannaDataReceived.jpg)
-  
-Next click the ![dashboard](Images/KibanaSysLogDash) button to view the web app activity of Web1, Web2 and Web3 through Kibana's interface and visualizations. 
-  
 The remaining modules are commands to enable, setup, start Filebeats and enable Filebeats everytime the servers are booted. 
 
 ```yml
@@ -520,6 +515,21 @@ The remaining modules are commands to enable, setup, start Filebeats and enable 
       name: filebeat
       enabled: yes
  ```
+
+To verify Filebeat was correctly installed on the web servers use the following steps:
+  - Navigate to the ELK server using the IP address through port 5601: http://104.42.221.76:5601/app/kibana
+   
+  - On the home page, click the in the Observability section to navigate to the Add Data to Kibana page: 
+    ![add log button](Images/KibanaAddLog.jpg)
+  
+  - On the Add Data to Kibana page click the Systems Logs link in the Systems Log box
+    ![sys logs](Images/KibanaSysLogs.jpg)
+  
+  - On the Systems logs page, scroll to the bottom to step 5 Module Status and click the Check Data button. If successful this result is displayed:
+    ![Data received](Images/KibannaDataReceived.jpg)
+  
+Next click the ![dashboard](Images/KibanaSysLogDash.jpg) button to view the web app activity of Web1, Web2 and Web3 through Kibana's interface and visualizations. 
+  
 
 
 The playbook below installs Metricbeat on the target hosts. The playbook for installing Filebeat is not included, but looks essentially identical — simply replace `metricbeat` with `filebeat`, and it will work as expected.
