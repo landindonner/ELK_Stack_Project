@@ -139,9 +139,10 @@ Ansible works by creating a python script and then runs that script on the targe
     10.0.0.7 ansible_python_interpreter=/usr/bin/python3
  ```
 
-
-The web application we used in this scenario is caled 'DVWA' or "Damn Vulnerable Web Application. This testing tool features several common exploits in order to teach security professionals how web applications can be exploited. 
-
+The next task is to create an Ansible playbook that installed Docker and configure all of the virtual web servers with the DVWA web app. This is done by using nano to create a yml file in the ansible directory in the Ansible container:
+ ```bash
+  root@container_ID:~# nano /etc/ansible/example-playbook.yml
+  ```
 
 ## ELK Server Configuration
 
