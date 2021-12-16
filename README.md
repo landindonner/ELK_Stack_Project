@@ -18,7 +18,7 @@ Key highlights from the project included in this document:
 ![STUDENT TODO: Update image file path](Images/ELK_Stack_Diagram.png)  
 
 
-The main purpose of this network is to simulate a network hosting vulnerable web applications in order to learn how ELK can be used to log traffic to those web applications. 
+The main purpose of this network is to simulate a network hosting vulnerable web applications in order to learn how ELK can be used to monitor traffic to those web applications. 
 
 Table 1 - Summary of server names and details
 | Name     |   Function  | IP Address |  Operating System  |
@@ -221,7 +221,7 @@ Now you can use the administrators machine with the IP address that is allowed t
 
 ![DVWA Landing Page](Images/DVWA_landing.jpg)
 
-The login credentials for the DVWA are ```bash admin:password``` 
+The login credentials for the DVWA are ```admin:password``` 
 Upon successful login, the user will see a page similar to the one below. Click the ![DB button](Images/DVWA_CreateDB.jpg) to set up the DVWA web application. 
 
 ![set up page](Images/DVWA_DB_Setup.jpg)
@@ -241,78 +241,185 @@ Security analysts can utilize an integrated ELK server to:
  - Detect changes to the file systems of the VMs on the network using Filebeats
  - Watch system metrics such as, CPU usage, attempted SSH logins, `sudo` escalation failures using Metricbeats.
 
-To deploy the ELK 
+The steps to connect to the Ansible container described above are repeated to navigate to the ansible directory. Additionally, the host file must be updated with the IP address for ELK server. Separate from the ```[webservers]``` header in the hosts file, an ```[ELK]``` section is created:
 
+```bash
+# This is the default ansible 'hosts' file.
+#
+# It should live in /etc/ansible/hosts
+#
+#   - Comments begin with the '#' character
+#   - Blank lines are ignored
+#   - Groups of hosts are delimited by [header] elements
+#   - You can enter hostnames or ip addresses
+#   - A hostname/ip can be a member of multiple groups
 
-To use this playbook, one must log into the Jump Box, then issue: `ansible-playbook install_elk.yml elk`. This runs the `install_elk.yml` playbook on the `elk` host.
+# Ex 1: Ungrouped hosts, specify before any group headers.
 
+#green.example.com
+#blue.example.com
+#192.168.100.1
+#192.168.100.10
 
+# Ex 2: A collection of hosts belonging to the 'webservers' group
 
+[webservers]
+10.0.0.5 ansible_python_interpreter=/usr/bin/python3
+10.0.0.6 ansible_python_interpreter=/usr/bin/python3
+10.0.0.7 ansible_python_interpreter=/usr/bin/python3
 
+[ELK]
+10.1.0.4 ansible_python_interpreter=/usr/bin/python3
 
-The playbook implements the following tasks:
-- _TODO: In 3-5 bullets, explain the steps of the ELK installation play. E.g., install Docker; download image; etc._
-- ...
-- ...
+#beta.example.org
+#192.168.1.100
+#192.168.1.110
 
+# If you have multiple hosts following a pattern you can specify
+# them like this:
 
+#www[001:006].example.com
 
+# Ex 3: A collection of database servers in the 'dbservers' group
 
+#[dbservers]
+#
+#db01.intranet.mydomain.net
+#db02.intranet.mydomain.net
+#10.25.1.56
+#10.25.1.57
 
-The playbook is duplicated below.
+# Here's another example of host ranges, this time there are no
+# leading 0s:
 
-```yaml
+#db-[99:101]-node.example.com
+```
+
+The next step is to create a separate playbook to deploy Docker and configure the ELK server with an Ansible playbook. Following the same instructions for creating the YAML file above, the following is the Ansible playbook:
+
+```yml
 ---
-# install_elk.yml
-- name: Configure Elk VM with Docker
-  hosts: elkservers
-  remote_user: elk
+- name: Config elk VM with Docker
+  hosts: ELK
+  remote_user: RedAdmin
   become: true
   tasks:
-    # Use apt module
-    - name: Install docker.io
-      apt:
-        update_cache: yes
-        name: docker.io
-        state: present
 
-      # Use apt module
-    - name: Install pip3
-      apt:
-        force_apt_get: yes
-        name: python3-pip
-        state: present
+  - name: Use more memory
+    sysctl:
+      name: vm.max_map_count
+      value: '262144'
+      state: present
+      reload: yes
 
-      # Use pip module
-    - name: Install Docker python module
-      pip:
-        name: docker
-        state: present
+      
+  - name: docker.io
+    apt:
+      update_cache: yes
+      name: docker.io
+      state: present
 
-      # Use command module
-    - name: Increase virtual memory
-      command: sysctl -w vm.max_map_count=262144
+  - name: install pip3
+    apt:
+      name: python3-pip
+      state: present
 
-      # Use sysctl module
-    - name: Use more memory
-      sysctl:
-        name: vm.max_map_count
-        value: "262144"
-        state: present
-        reload: yes
+  - name: Install Python Docker Module
+    pip:
+      name: docker
+      state: present
+ 
+  - name: download and launch our elk container
+    docker_container:
+      name: elk
+      image: sebp/elk:761
+      state: started
+      restart_policy: always
+      published_ports: 5601:5601,9200:9200,5044:5044
 
-      # Use docker_container module
-    - name: download and launch a docker elk container
-      docker_container:
-        name: elk
-        image: sebp/elk:761
-        state: started
-        restart_policy: always
-        published_ports:
-          - 5601:5601
-          - 9200:9200
-          - 5044:5044
+  - name: enable docker service
+    systemd:
+     name: docker
+     enabled: yes 
+ ```
+
+The modules for installing Docker and Python were the same as the previous playbook, however there were three changes to this playbook. First, we configured this playbook to only run the playbook on the IP addresses added to the ELK section of the hosts file. The same remote user was used so we could secure the ELK server with the same public SSH key used for securing the web servers. This allows the administrator to SSH into every server from the Ansible container. 
+
+```yml
+- name: Config elk VM with Docker
+  hosts: ELK
+  remote_user: RedAdmin
+  become: true
+  tasks:
 ```
+
+The next section of the playbook is a system requirement for running the ELK container. More info [at the `elk-docker` documentation](https://elk-docker.readthedocs.io/#prerequisites). Memory must be increased as follows:
+
+```yml
+- name: Use more memory
+    sysctl:
+      name: vm.max_map_count
+      value: '262144'
+      state: present
+      reload: yes
+```
+
+Lastly, the ELK Docker container configuration must be included. The sebp/elk:761 Docker image provides a web interface to interact with Elasticsearch, Logstash, and Kibana. The published ports are what will be used to access the web interfaces. See below:
+
+```yml
+ - name: download and launch our elk container
+    docker_container:
+      name: elk
+      image: sebp/elk:761
+      state: started
+      restart_policy: always
+      published_ports: 5601:5601,9200:9200,5044:5044
+ ```
+
+Next, the Ansible playbook must be run to complete the deployment. ```root@containerID:/etc/ansible/files# ansible-playbook install-elk.yml```
+
+The output should verify successful deployement to the one IP address configured in the hosts file:
+
+```bash
+[WARNING]: ansible.utils.display.initialize_locale has not been called, this may result in incorrectly calculated text
+widths that can cause Display to print incorrect line lengths
+
+PLAY [Config elk VM with Docker] ***************************************************************************************
+
+TASK [Gathering Facts] *************************************************************************************************
+ok: [10.1.0.4]
+
+TASK [Use more memory] *************************************************************************************************
+ok: [10.1.0.4]
+
+TASK [docker.io] *******************************************************************************************************
+ok: [10.1.0.4]
+
+TASK [install pip3] ****************************************************************************************************
+ok: [10.1.0.4]
+
+TASK [Install Python Docker Module] ************************************************************************************
+ok: [10.1.0.4]
+
+TASK [download and launch our elk container] ***************************************************************************
+[DEPRECATION WARNING]: The container_default_behavior option will change its default value from "compatibility" to
+"no_defaults" in community.docker 2.0.0. To remove this warning, please specify an explicit value for it now. This
+feature will be removed from community.docker in version 2.0.0. Deprecation warnings can be disabled by setting
+deprecation_warnings=False in ansible.cfg.
+ok: [10.1.0.4]
+
+TASK [enable docker service] *******************************************************************************************
+ok: [10.1.0.4]
+
+PLAY RECAP *************************************************************************************************************
+10.1.0.4                   : ok=7    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+
+
+
+
+
 
 ### Target Machines & Beats
 This ELK server is configured to monitor the DVWA 1 and DVWA 2 VMs, at `10.0.0.5` and `10.0.0.6`, respectively.
