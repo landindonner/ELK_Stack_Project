@@ -418,22 +418,70 @@ PLAY RECAP *********************************************************************
 ```
 
 
+### Monitoring Web Applications with Beats
 
+The ELK server is configured to monitor Web1 and Web2 using tools in the ELK Stack. The next step is to use Ansible to deploy **Beats** to both web servers.
 
+Taking raw log files and trying to make sense of all the data is often difficult and time consuming. We can use Beats to collect, parse, and visualize ELK logs in a single command. Beats are lightweight data shippers that take data from various sources and sends them to Elasticsearch. Examples of data shipped for monitoring:
+ - Contents of a log file
+ - Metrics on a system
+ - Network activity
 
+The following beats are installed on the web servers in this network:
 
+- **Filebeat**: Filebeat detects changes to the filesystem. Specifically, it is used to collect and parse Apache logs.
+- **Metricbeat**: Metricbeat detects changes in system metrics, such as CPU/RAM usage. Additionally, it will detect SSH login attempts, and failed `sudo` escalations.
 
-### Target Machines & Beats
-This ELK server is configured to monitor the DVWA 1 and DVWA 2 VMs, at `10.0.0.5` and `10.0.0.6`, respectively.
+The next step is to install Filebeats on both web servers using Ansible. The instructions are the same as mentioned previously. First create the Ansible playbook, then run the playbook to deploy. The Filebeat playbook:
 
-We have installed the following Beats on these machines:
-- Filebeat
-- Metricbeat
-- Packetbeat
+```yml
+---
 
-These Beats allow us to collect the following information from each machine:
-- **Filebeat**: Filebeat detects changes to the filesystem. Specifically, we use it to collect Apache logs.
-- **Metricbeat**: Metricbeat detects changes in system metrics, such as CPU usage. We use it to detect SSH login attempts, failed `sudo` escalations, and CPU/RAM statistics.
+- name: Installing and Launch Filebeat
+  hosts: webservers
+  become: yes
+  tasks:
+   
+  - name: Download filebeat .deb file
+    command: curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.4.0-amd64.deb
+
+  - name: Install filebeat .deb
+    command: dpkg -i filebeat-7.4.0-amd64.deb
+
+  - name: Drop in filebeat.yml
+    copy:
+      src: /etc/ansible/files/filebeat-config.yml
+      dest: /etc/filebeat/filebeat.yml
+
+  - name: Enable and Configure System Module
+    command: filebeat modules enable system
+
+  - name: Setup filebeat
+    command: filebeat setup
+   
+  - name: Start filebeat service
+    command: service filebeat start
+
+  - name: Enable service filebeat on boot
+    systemd:
+      name: filebeat
+      enabled: yes
+ ```
+
+The first module downloads the Debian Linux sytem file (.deb) for Filebeats using the curl command. The second installs that downloaded file. See below: 
+
+```yml
+ - name: Download filebeat .deb file
+    command: curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.4.0-amd64.deb
+
+  - name: Install filebeat .deb
+    command: dpkg -i filebeat-7.4.0-amd64.deb
+```
+
+The next module references the Filebeat configuration file. In the configuration file is where the IP address is updated for the ELK server. For this network the following configuration file was downloaded using the curl command:
+
+`curl https://gist.githubusercontent.com/slape/5cc350109583af6cbe577bbcc0710c93/raw/eca603b72586fbe148c11f9c87bf96a63cb25760/Filebeat > /etc/ansible/filebeat-config.yml`
+
 
 The playbook below installs Metricbeat on the target hosts. The playbook for installing Filebeat is not included, but looks essentially identical — simply replace `metricbeat` with `filebeat`, and it will work as expected.
 
